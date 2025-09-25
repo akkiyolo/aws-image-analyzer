@@ -3,234 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWS Guestbook</title>
+    <title>Image Recognition AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
         }
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 500px;
-            padding: 30px;
+        .loader {
+            border-top-color: #3498db;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
         }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 25px;
-            font-size: 28px;
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
         }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #34495e;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        input:focus, textarea:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 14px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #2980b9;
-        }
-        #messages {
-            margin-top: 30px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .message {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #3498db;
-        }
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        .name {
-            font-weight: 700;
-            color: #2c3e50;
-        }
-        .timestamp {
-            color: #7f8c8d;
-            font-size: 0.85em;
-        }
-        .message-content {
-            color: #34495e;
-            line-height: 1.5;
-        }
-        .loading {
-            text-align: center;
-            color: #7f8c8d;
-            font-style: italic;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>✨ AWS Guestbook</h1>
-        <form id="guestForm">
-            <div class="form-group">
-                <label for="name">Your Name</label>
-                <input type="text" id="name" required placeholder="Enter your name">
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+    <div class="container mx-auto p-4 md:p-8 max-w-2xl w-full">
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-10 border border-gray-700">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-cyan-400">Image Analyzer</h1>
+                <p class="text-gray-400 mt-2">Upload an image and let AI describe what it sees.</p>
             </div>
-            <div class="form-group">
-                <label for="message">Your Message</label>
-                <textarea id="message" required placeholder="Share your thoughts..."></textarea>
+
+            <!-- Image Upload Section -->
+            <div id="upload-section">
+                <label for="image-upload" class="cursor-pointer block w-full border-2 border-dashed border-gray-600 hover:border-cyan-400 rounded-xl p-8 md:p-12 text-center transition-all duration-300">
+                    <div class="flex flex-col items-center">
+                        <svg class="w-12 h-12 text-gray-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="font-semibold text-gray-300">Click to upload an image</p>
+                        <p class="text-xs text-gray-500 mt-1">PNG, JPG, or WEBP</p>
+                    </div>
+                </label>
+                <input id="image-upload" type="file" class="hidden" accept="image/png, image/jpeg, image/webp" onchange="handleImageUpload(event)">
             </div>
-            <button type="submit">Post Message</button>
-        </form>
-        <div id="messages">
-            <div class="loading">Loading messages...</div>
+
+            <!-- Image Preview and Results Section -->
+            <div id="result-section" class="hidden mt-6">
+                <div class="relative group">
+                     <img id="image-preview" src="#" alt="Uploaded Image" class="rounded-xl shadow-lg w-full h-auto max-h-96 object-contain">
+                     <button onclick="resetApp()" class="absolute top-3 right-3 bg-gray-900 bg-opacity-70 text-white rounded-full p-2 hover:bg-opacity-100 transition-opacity opacity-0 group-hover:opacity-100 focus:outline-none">
+                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                     </button>
+                </div>
+
+                <div id="analysis-container" class="mt-6">
+                    <h2 class="text-xl font-semibold text-cyan-400 mb-4">AI Analysis</h2>
+                    <div id="loader" class="flex items-center justify-center py-8">
+                        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-600 h-12 w-12"></div>
+                    </div>
+                    <div id="analysis-result" class="bg-gray-700/50 p-4 rounded-lg text-gray-300 hidden whitespace-pre-wrap"></div>
+                     <div id="error-message" class="bg-red-900/50 p-4 rounded-lg text-red-300 hidden"></div>
+                </div>
+            </div>
         </div>
+        <footer class="text-center mt-8 text-gray-500 text-sm">
+            <p>Powered by AWS Lambda & Gemini API. For educational purposes.</p>
+        </footer>
     </div>
 
-    <script>
-        // REPLACE THIS WITH YOUR ACTUAL API GATEWAY URL
-        const API_URL = "https://8yukw0nd0i.execute-api.ap-south-1.amazonaws.com"; 
+<script>
+    // --- Configuration ---
+    // IMPORTANT: Replace this with your actual AWS API Gateway endpoint URL after deployment.
+    const LAMBDA_ENDPOINT = 'YOUR_API_GATEWAY_ENDPOINT_URL_HERE'; 
 
-        // DOM Elements
-        const form = document.getElementById('guestForm');
-        const messagesContainer = document.getElementById('messages');
+    const uploadSection = document.getElementById('upload-section');
+    const resultSection = document.getElementById('result-section');
+    const imagePreview = document.getElementById('image-preview');
+    const loader = document.getElementById('loader');
+    const analysisResult = document.getElementById('analysis-result');
+    const errorMessage = document.getElementById('error-message');
 
-        // Handle form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value.trim();
-            const message = document.getElementById('message').value.trim();
-            
-            if (!name || !message) return;
-            
-            try {
-                // Show loading state
-                const originalButton = form.querySelector('button');
-                originalButton.disabled = true;
-                originalButton.textContent = 'Posting...';
-                
-                // Send POST request
-                await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ name, message })
-                });
-                
-                // Reset form and reload messages
-                form.reset();
-                loadMessages();
-            } catch (error) {
-                alert('Failed to post message. Please try again!');
-                console.error('Submission error:', error);
-            } finally {
-                // Restore button
-                const button = form.querySelector('button');
-                button.disabled = false;
-                button.textContent = 'Post Message';
-            }
-        });
-
-        // Load messages from API
-        async function loadMessages() {
-            try {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error('Network response was not ok');
-                
-                const messages = await response.json();
-                
-                if (messages.length === 0) {
-                    messagesContainer.innerHTML = '<div class="loading">No messages yet. Be the first!</div>';
-                    return;
-                }
-                
-                // Sort messages by timestamp (newest first)
-                messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                // Render messages
-                messagesContainer.innerHTML = messages.map(msg => `
-                    <div class="message">
-                        <div class="message-header">
-                            <span class="name">${escapeHtml(msg.name)}</span>
-                            <span class="timestamp">${formatDate(msg.timestamp)}</span>
-                        </div>
-                        <div class="message-content">${escapeHtml(msg.message)}</div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                messagesContainer.innerHTML = '<div class="loading">Failed to load messages. Please refresh!</div>';
-                console.error('Loading error:', error);
-            }
-        }
-
-        // Helper: Escape HTML to prevent XSS
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Helper: Format timestamp
-        function formatDate(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleString();
-        }
-
-        // Initial load
-        loadMessages();
+    /**
+     * Handles the file input change event.
+     * @param {Event} event - The file input change event.
+     */
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
         
-        // Auto-refresh every 30 seconds
-        setInterval(loadMessages, 30000);
-    </script>
+        // Validate file type
+        if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+            alert('Please upload a valid image file (PNG, JPG, WEBP).');
+            return;
+        }
+        
+        // Show preview and loading state
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            uploadSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            analysisResult.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            
+            // Convert image to base64 string (without the data URL prefix)
+            const base64Image = e.target.result.split(',')[1];
+            analyzeImage(base64Image, file.type);
+        }
+        reader.readAsDataURL(file);
+    }
+
+    /**
+     * Sends the image data to the backend Lambda function for analysis.
+     * @param {string} base64Image - The base64 encoded image string.
+     * @param {string} mimeType - The MIME type of the image.
+     */
+    async function analyzeImage(base64Image, mimeType) {
+        if (LAMBDA_ENDPOINT === 'YOUR_API_GATEWAY_ENDPOINT_URL_HERE') {
+            displayError("Configuration Error: The backend API endpoint has not been set. Please update the LAMBDA_ENDPOINT variable in the script.");
+            return;
+        }
+
+        try {
+            const response = await fetch(LAMBDA_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    image: base64Image,
+                    mimeType: mimeType
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Request failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Display the result
+            loader.classList.add('hidden');
+            analysisResult.textContent = data.analysis;
+            analysisResult.classList.remove('hidden');
+
+        } catch (error) {
+            console.error('Error analyzing image:', error);
+            displayError(`An error occurred during analysis: ${error.message}`);
+        }
+    }
+
+    /**
+     * Displays an error message in the UI.
+     * @param {string} message - The error message to display.
+     */
+    function displayError(message) {
+        loader.classList.add('hidden');
+        errorMessage.textContent = message;
+        errorMessage.classList.remove('hidden');
+    }
+
+    /**
+     * Resets the application to its initial state.
+     */
+    function resetApp() {
+        uploadSection.classList.remove('hidden');
+        resultSection.classList.add('hidden');
+        document.getElementById('image-upload').value = ''; // Reset file input
+        imagePreview.src = '#';
+        analysisResult.textContent = '';
+        errorMessage.textContent = '';
+        analysisResult.classList.add('hidden');
+        errorMessage.classList.add('hidden');
+    }
+
+</script>
+
 </body>
 </html>
